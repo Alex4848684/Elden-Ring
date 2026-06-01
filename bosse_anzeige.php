@@ -16,7 +16,7 @@
             die("Verbindung fehlgeschlagen: " . $connection->connect_error);
         }
 
-        $sql = "SELECT `id`, `name`, `title`, `hp`, `age_lore`, `size_estimated` FROM `bosses` ORDER BY `name`";
+        $sql = "SELECT `id`, `name`, `title`, `hp`, `age_lore`, `size_estimated` From bosses";
         $stmt = $connection->prepare($sql);
         $stmt->execute();
         $result = $stmt->get_result();
