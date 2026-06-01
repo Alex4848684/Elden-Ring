@@ -1,0 +1,91 @@
+-- 1. Datenbank erstellen und auswählen
+CREATE DATABASE IF NOT EXISTS `elden-ring` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `elden-ring`;
+
+-- 2. Tabellenstrukturen erstellen
+CREATE TABLE IF NOT EXISTS `bosses` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(100) NOT NULL,
+    `title` VARCHAR(100) NOT NULL,
+    `hp` INT NOT NULL,
+    `age_lore` VARCHAR(50) DEFAULT 'Unbekannt/Uralt',
+    `size_estimated` VARCHAR(50) DEFAULT 'Menschengroß'
+);
+
+CREATE TABLE IF NOT EXISTS `weaknesses` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `type` VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS `weapons` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- Verknüpfungstabelle: Bosse <-> Schwächen
+CREATE TABLE IF NOT EXISTS `boss_weaknesses` (
+    `boss_id` INT,
+    `weakness_id` INT,
+    PRIMARY KEY (`boss_id`, `weakness_id`),
+    FOREIGN KEY (`boss_id`) REFERENCES `bosses`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`weakness_id`) REFERENCES `weaknesses`(`id`) ON DELETE CASCADE
+);
+
+-- Verknüpfungstabelle: Bosse <-> Waffen
+CREATE TABLE IF NOT EXISTS `boss_weapons` (
+    `boss_id` INT,
+    `weapon_id` INT,
+    PRIMARY KEY (`boss_id`, `weapon_id`),
+    FOREIGN KEY (`boss_id`) REFERENCES `bosses`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`weapon_id`) REFERENCES `weapons`(`id`) ON DELETE CASCADE
+);
+
+-- 3. Stammdaten einfügen (Schwächen)
+INSERT INTO `weaknesses` (`type`) VALUES 
+('Blutung (Bleed)'), ('Frost'), ('Feuer'), ('Scharlachfäule (Scarlet Rot)'), 
+('Physischer Schaden'), ('Magie'), ('Blitz'), ('Heilungs-Zauber'), ('Schlaf');
+
+-- 4. Stammdaten einfügen (Waffen)
+INSERT INTO `weapons` (`name`) VALUES 
+('Grafted Dragon'), ('Axe of Godrick'), ('Carian Regal Scepter'), 
+('Starscourge Greatswords'), ('Blasphemous Blade'), ('Morgott\'s Cursed Sword'), 
+('Maronen-Krummschwert'), ('Maliketh\'s Black Blade'), ('Axe of Godfrey'), 
+('Marika\'s Hammer'), ('Hand of Malenia'), ('Sacred Relic Sword');
+
+-- 5. Bosse einfügen (mit recherchierten HP, geschätztem Alter und Größe)
+INSERT INTO `bosses` (`id`, `name`, `title`, `hp`, `age_lore`, `size_estimated`) VALUES
+(1, 'Godrick', 'The Grafted (Der Verpflanzte)', 6080, 'Mehrere Jahrhunderte', 'ca. 4-5 Meter (durch Gliedermaße)'),
+(2, 'Rennala', 'Queen of the Full Moon (Königin des Vollmonds)', 7500, 'Uralt (Zeitalter vor dem Erdenbaum)', 'ca. 2.5 Meter'),
+(3, 'Radahn', 'Starscourge (Der Sternengeißel)', 9572, 'Mehrere Jahrhunderte', 'ca. 8 Meter (Riesig)'),
+(4, 'Rykard', 'Lord of Blasphemy (Fürst der Blasphemie)', 59174, 'Uralt / Unsterblich', 'ca. 30+ Meter (Schlangenform)'),
+(5, 'Morgott', 'The Omen King (König des Mals)', 10399, 'Uralt (Sohn von Marika)', 'ca. 3.5 Meter'),
+(6, 'Feuerriese', 'Fire Giant', 42263, 'Jahrtausendealt (Letzter seiner Art)', 'ca. 25-30 Meter (Kolossal)'),
+(7, 'Maliketh', 'The Black Blade (Die Schwarze Klinge)', 10639, 'Zeitalter vor dem Erdenbaum', 'ca. 5 Meter'),
+(8, 'Godfrey / Hoarah Loux', 'First Elden Lord (Erster Eldenfürst)', 21900, 'Uralt (Erster Ehemann Marikas)', 'ca. 3.5 Meter'),
+(9, 'Radagon / Eldenbestie', 'Of the Golden Order / Elden Beast', 35460, 'Seit Anbeginn der Schöpfung', 'ca. 2 Meter / ca. 40 Meter'),
+(10, 'Malenia', 'Blade of Miquella (Klinge von Miquella)', 33200, 'Mehrere Jahrhunderte', 'ca. 2.5 Meter');
+
+-- 6. Beziehungen verknüpfen (Bosse zu ihren Schwächen)
+INSERT INTO `boss_weaknesses` (`boss_id`, `weakness_id`) VALUES
+(1, 1), (1, 3),          -- Godrick: Blutung, Feuer
+(2, 5),                  -- Rennala: Physisch (extrem resistent gegen Magie!)
+(3, 4), (3, 1),          -- Radahn: Scharlachfäule (Lore-Sache!), Blutung
+(4, 5),                  -- Rykard: Physisch (speziell die Schlangenjäger-Waffe)
+(5, 1), (5, 2),          -- Morgott: Blutung, Frost
+(6, 4), (6, 1),          -- Feuerriese: Scharlachfäule, Blutung
+(7, 5), (7, 3),          -- Maliketh: Physisch, Feuer
+(8, 1), (8, 4),          -- Godfrey: Blutung, Scharlachfäule
+(9, 5),                  -- Radagon/Bestie: Physisch (Immun gegen fast alle Statuseffekte)
+(10, 1), (10, 2), (10, 3);-- Malenia: Blutung (sehr effektiv!), Frost, Feuer
+
+-- 7. Beziehungen verknüpfen (Bosse zu ihren Waffen/Erinnerungen)
+INSERT INTO `boss_weapons` (`boss_id`, `weapon_id`) VALUES
+(1, 1), (1, 2),          -- Godrick -> Grafted Dragon, Axe of Godrick
+(2, 3),                  -- Rennala -> Carian Regal Scepter
+(3, 4),                  -- Radahn -> Starscourge Greatswords
+(4, 5),                  -- Rykard -> Blasphemous Blade
+(5, 6),                  -- Morgott -> Morgott's Cursed Sword
+(7, 8),                  -- Maliketh -> Maliketh's Black Blade
+(8, 9),                  -- Godfrey -> Axe of Godfrey
+(9, 10), (9, 12),        -- Radagon/Eldenbestie -> Marikas Hammer, Sacred Relic Sword
+(10, 11);                -- Malenia -> Hand of Malenia
